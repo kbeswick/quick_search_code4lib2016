@@ -41,7 +41,7 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
-					<h1>QuickSearch now open source!</h1>
+					<h1>QuickSearch: now open source!</h1>
 					<h2>Kevin Beswick</h2>
           <h4>NCSU Libraries</h4>
           <h4>@kbeswick</h4>
@@ -69,13 +69,16 @@
         </section>
 
         <section>
-          <h2>Goals</h2>
+          <h2>Features</h2>
           <ul>
-            <li>Easy to install/customize</li>
-            <ul>
-              <li>Vagrant/Ansible included</li>
-            </ul>
-            <li>Modular</li>
+            <li>Development environment with Vagrant/Ansible included</li>
+            <li>Modular &amp; extensible
+              <ul>
+                <li>Searchers</li>
+                <li>Themes</li>
+              </ul>
+            </li>
+            <li>Statistics (local &amp; GA), Best Bets</li>
           </ul>
         </section>
 
@@ -84,23 +87,83 @@
           <ul>
             <li>Plugin that provides search functionality for a particular library service</li>
             <li>Published as Ruby Gem</li>
-            <li>Maintain a collection of searchers</li>
             <li>Easy to write</li>
           </ul>
         </section>
 
         <section>
-          <h2>Searchers</h2>
+          <p>quick_search-my_catalog_searcher/app/
+          searcher/quick_search/my_catalog_searcher.rb</p>
+          <pre><code>module Quicksearch
+  class MyCatalogSearcher < Quicksearch::Searcher
+
+    def search
+      resp = @http.get("https://mycatalog.com/search?q=" + query)
+      @response = JSON.parse(resp.body)
+    end
+
+    def results
+      results_list = []
+
+      @response['docs'].first(@per_page).each do |value|
+        results_list << OpenStruct.new(
+          title => value['title'],
+          link => value['link'],
+          author => value['authors'],
+          date => value['date_published'],
+          thumbnail => value['cover_url']
+        )
+      end
+
+      results_list
+    end
+
+end
+          </code></pre>
+        </section>
+
+        <section>
+          <p>quick_search/Gemfile</p>
+          <pre><code># ...
+# QuickSearch searchers
+gem 'quicksearch_wikipedia_searcher', git: 'git@github.com:ncsu-libraries/quick_search-wikipedia_searcher.git'
+gem 'quicksearch_open_library_searcher', git: 'git@github.com:ncsu-libraries/quick_search-open_library_searcher.git'
+gem 'quicksearch_arxiv_searcher', git: 'git@github.com:ncsu-libraries/quick_search-arxiv_searcher.git'
+gem 'quicksearch_my_catalog_searcher', path: '../quick_search-my_catalog_searcher'
+          </code></pre>
+
+        </section>
+
+        <section>
+          <p>quick_search/config/quicksearch_config.yml</p>
+          <pre><code># ...
+# Searchers that QuickSearch will use
+searchers: [best_bets,arxiv,open_library,wikipedia,my_catalog]
+          </code></pre>
+        </section>
+
+        <section>
+          <p>my_theme/app/views/search/index.html.erb</p>
+          <pre><code><!-- ... -->
+<div class="small-12 medium-4 columns my-catalog module">
+  <%= render_module(@my_catalog, 'my_catalog') %>
+</div>
+
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>That's it!</h2>
+        </section>
+
+        <section>
+          <h2>We've released a few searchers so far</h2>
           <ul>
-            <li>Required: search(), results()</li>
-            <li>Optional:
-              <ul>
-                <li>Results Template</li>
-                <li>Configuration</li>
-                <li>i18n</li>
-                <li>Anything else</li>
-              </ul>
-            </li>
+            <li>arXiv</li>
+            <li>OpenLibrary</li>
+            <li>Wikipedia</li>
+            <li>Summon</li>
+            <li>Nutch (website search)</li>
           </ul>
         </section>
 
@@ -108,8 +171,9 @@
           <h2>Themes</h2>
           <ul>
             <li>Also published as Ruby Gems</li>
-            <li>Override parts of default theme or create entirely new theme</li>
-            <li>Generic theme available - uses Foundation</li>
+            <li>Override parts of default theme (header/footer)</li>
+            <li>Create entirely new theme</li>
+            <li>Generic theme available - based on Foundation CSS framework</li>
           </ul>
         </section>
 
@@ -134,17 +198,24 @@
           <h2>TODO</h2>
           <ul>
             <li>Improve docs</li>
-            <li>Port over a few more features</li>
+            <li>Fix unit/integration tests</li>
+            <li>Port over a few more features (example: typeahead)</li>
+            <li>Make QuickSearch core a Rails Engine</li>
           </ul>
         </section>
 
         <section>
           <h2>We want to work with you!</h2>
-          <ul>
-            <li>Get in touch!</li>
-            <li>kdbeswic@ncsu.edu</li>
-            <li>https://www.github.com/ncsu-libraries/quick_search</li>
-          </ul>
+          <br>
+          <h4>kdbeswic@ncsu.edu</h4>
+          <h4>@kbeswick</h4>
+          <br>
+
+          <p>
+            <a href="https://www.github.com/ncsu-libraries/quick_search">https://www.github.com/ncsu-libraries/quick_search</a>
+            <br><br>
+            <a href="https://search.lib.ncsu.edu/">https://search.lib.ncsu.edu/</a>
+          </p>
         </section>
 
 			</div>
